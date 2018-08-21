@@ -1,6 +1,8 @@
 # Parser combinators
 
-Пример парсинга файла `to.parse`:
+**Задача:** создать свой [dsl-язык](https://ru.wikipedia.org/wiki/Предметно-ориентированный_язык), состоящий из блоков с отступами, аналогично языкам, таким как Python.
+
+Пример парсинга файла `to.parse` (придуманный dsl):
 
 <!-- code -->
 ```python
@@ -19,7 +21,7 @@
             exit
 ```
 
-В след. вид:
+В код следующего вида:
 
 <!-- code -->
 ```scala
@@ -107,7 +109,7 @@ AndThen(
 ```
 
 Начнем с указания, какие символы следует игнорировать как пробельные символы. 
-Мы не можем игнорировать `\ n` (_перенос строки_), так как нам нужно, чтобы он распознавал уровень 
+Мы не можем игнорировать `\n` (_перенос строки_), так как нам нужно, чтобы он распознавал уровень 
 идентификации, определяемый количеством пробелов, которые следуют за ним. 
 _Любой другой символ пробела можно игнорировать_:
 
@@ -129,4 +131,51 @@ _Любой другой символ пробела можно игнориро
     
 ```
 
-[и отсюда](https://enear.github.io/2016/03/31/parser-combinators/)
+Теперь построим парсер для идентификаторовЖ
+
+<!-- code -->
+```scala
+    def identifier: Parser[IDENTIFIER] = {
+      "[a-zA-Z_][a-zA-Z0-9_]*".r ^^ { str => IDENTIFIER(str) }
+    }
+```
+
+Метод `^^` действует как отображение по результату синтаксического анализа. 
+Регулярное выражение `[a-zA-Z_][a-zA-Z0-9 _]*".r` неявно преобразуется в экземпляр `Parser [String]`, 
+на котором мы отображаем функцию `(String => IDENTIFIER)`, возвращая таким образом экземпляр Parser `[IDENTIFIER]`.
+
+Парсеры для _строковых литералов_ и _идентификаторов_ аналогичны:
+
+<!-- code -->
+```scala
+    def literal: Parser[LITERAL] = {
+      """"[^"]*"""".r ^^ { str =>
+        val content = str.substring(1, str.length - 1)
+        LITERAL(content)
+      }
+    }
+    
+    def indentation: Parser[INDENTATION] = {
+      "\n[ ]*".r ^^ { whitespace =>
+        val nSpaces = whitespace.length - 1
+        INDENTATION(nSpaces)
+      }
+}
+```
+
+Создание парсеров для ключевых слов тривиально:
+
+<!-- code -->
+```scala
+    def exit          = "exit"          ^^ (_ => EXIT)
+    def readInput     = "read input"    ^^ (_ => READINPUT)
+    def callService   = "call service"  ^^ (_ => CALLSERVICE)
+    def switch        = "switch"        ^^ (_ => SWITCH)
+    def otherwise     = "otherwise"     ^^ (_ => OTHERWISE)
+    def colon         = ":"             ^^ (_ => COLON)
+    def arrow         = "->"            ^^ (_ => ARROW)
+    def equals        = "=="            ^^ (_ => EQUALS)
+    def comma         = ","             ^^ (_ => COMMA)
+```
+
+[пример переведен мной отсюда](https://enear.github.io/2016/03/31/parser-combinators/)
