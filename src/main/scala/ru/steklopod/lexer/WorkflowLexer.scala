@@ -5,6 +5,7 @@ import scala.util.parsing.combinator.RegexParsers
 
 object WorkflowLexer extends RegexParsers {
   override def skipWhitespace: Boolean = true
+
   override val whiteSpace = "[ \t\r\f]+".r // \t - табуляция; \r - возврат каретки; \f - конец (разрыв) страницы.
 
   def apply(code: String): Either[WorkflowLexerError, List[WorkflowToken]] = {
@@ -25,30 +26,29 @@ object WorkflowLexer extends RegexParsers {
                                   indents: List[Int] = List(0)): List[WorkflowToken] = {
     tokens.headOption match {
 
-      // if there is an increase in indentation level, we push this new level into the stack
-      // and produce an INDENT
+      // если есть увеличение (increase) уровня отступов, мы добавляем этот новый уровень в стек
+      // и создаем INDENT
       case Some(INDENTATION(spaces)) if spaces > indents.head =>
         INDENT() :: processIndentations(tokens.tail, spaces :: indents)
 
-      // if there is a decrease, we pop from the stack until we have matched the new level and
-      // we produce a DEDENT for each pop
+      // если снижение (decrease), мы выходим из стека, пока не достигнем нового уровня и
+      // мы производим DEDENT для каждого взятия из стека (`pop`-операции)
       case Some(INDENTATION(spaces)) if spaces < indents.head =>
         val (dropped, kept) = indents.partition(_ > spaces)
         (dropped map (_ => DEDENT())) ::: processIndentations(tokens.tail, kept)
 
-      // if the indentation level stays unchanged, no tokens are produced
+      // если уровень отступов остается неизменным, токены не создаются
       case Some(INDENTATION(spaces)) if spaces == indents.head =>
         processIndentations(tokens.tail, indents)
 
-      // other tokens are ignored
+      // другие токены игнорируются
       case Some(token) =>
         token :: processIndentations(tokens.tail, indents)
 
-      // the final step is to produce a DEDENT for each indentation level still remaining, thus
-      // "closing" the remaining open INDENTS
+      // последний шаг - создать DEDENT для каждого оставшегося уровня отступов, таким образом
+      // «закрывая» оставшиеся открытые объекты
       case None =>
         indents.filter(_ > 0).map(_ => DEDENT())
-
     }
   }
 
@@ -60,7 +60,7 @@ object WorkflowLexer extends RegexParsers {
     * [^ ]	- соответствует единичному символу из числа тех, которых нет в скобках,
     * например, [^abc] соответствует любому символу, кроме «a», «b» или «c».
     * [^a-z] соответствует любому символу, кроме символов нижнего регистра в латинском алфавите.
-    */
+    **/
   def literal: Parser[LITERAL] = positioned {
     """"[^"]*"""".r ^^ { str =>
       val content = str.substring(1, str.length - 1)
@@ -78,14 +78,13 @@ object WorkflowLexer extends RegexParsers {
     }
   }
 
-  def exit          = positioned { "exit"          ^^ (_ => EXIT()) }
+  def exit               = positioned { "exit"          ^^ (_ => EXIT()) }
   def readInput     = positioned { "read input"    ^^ (_ => READINPUT()) }
-  def callService   = positioned { "call service"  ^^ (_ => CALLSERVICE()) }
-  def switch        = positioned { "switch"        ^^ (_ => SWITCH()) }
+  def callService  = positioned { "call service"  ^^ (_ => CALLSERVICE()) }
+  def switch           = positioned { "switch"        ^^ (_ => SWITCH()) }
   def otherwise     = positioned { "otherwise"     ^^ (_ => OTHERWISE()) }
-  def colon         = positioned { ":"             ^^ (_ => COLON()) }
-  def arrow         = positioned { "->"            ^^ (_ => ARROW()) }
-  def equals        = positioned { "=="            ^^ (_ => EQUALS()) }
-  def comma         = positioned { ","             ^^ (_ => COMMA()) }
-
+  def colon            = positioned { ":"             ^^ (_ => COLON()) }
+  def arrow           = positioned { "->"            ^^ (_ => ARROW()) }
+  def equals          = positioned { "=="            ^^ (_ => EQUALS()) }
+  def comma           = positioned { ","             ^^ (_ => COMMA()) }
 }
