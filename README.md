@@ -119,7 +119,7 @@ _Любой другой символ пробела можно игнориро
     override val whiteSpace = "[ \t\r\f]+".r
 ```
 
-[справка:](http://website-lab.ru/article/regexp/shpargalka_po_regulyarnyim_vyirajeniyam/)
+[справка:](https://ru.wikibooks.org/wiki/Регулярные_выражения)
 <!-- code -->
 ```php
     \t - табуляция;
@@ -148,6 +148,7 @@ _Любой другой символ пробела можно игнориро
 
 <!-- code -->
 ```scala
+    //все символы кроме двойных кавычек являются классом LITERAL
     def literal: Parser[LITERAL] = {
       """"[^"]*"""".r ^^ { str =>
         val content = str.substring(1, str.length - 1)
@@ -155,6 +156,7 @@ _Любой другой символ пробела можно игнориро
       }
     }
     
+    //перенос строки, затем пробелы являются классом INDENTATION
     def indentation: Parser[INDENTATION] = {
       "\n[ ]*".r ^^ { whitespace =>
         val nSpaces = whitespace.length - 1
@@ -177,5 +179,7 @@ _Любой другой символ пробела можно игнориро
     def equals        = "=="            ^^ (_ => EQUALS)
     def comma         = ","             ^^ (_ => COMMA)
 ```
+
+
 
 [пример переведен мной отсюда](https://enear.github.io/2016/03/31/parser-combinators/)

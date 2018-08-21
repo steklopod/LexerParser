@@ -12,6 +12,11 @@ object WorkflowLexer extends RegexParsers {
     "[a-zA-Z_][a-zA-Z0-9_]*".r ^^ { str => IDENTIFIER(str) }
   }
 
+  /**
+    * [^ ]	- соответствует единичному символу из числа тех, которых нет в скобках.
+    * Например, [^abc] соответствует любому символу, кроме «a», «b» или «c».
+    * [^a-z] соответствует любому символу, кроме символов нижнего регистра в латинском алфавите.
+    * */
   def literal: Parser[LITERAL] = positioned {
     """"[^"]*"""".r ^^ { str =>
       val content = str.substring(1, str.length - 1)
