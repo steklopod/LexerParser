@@ -1,7 +1,6 @@
 package ru.steklopod.lexer
 
 import ru.steklopod.compiler.{Location, WorkflowLexerError}
-
 import scala.util.parsing.combinator.RegexParsers
 
 object WorkflowLexer extends RegexParsers {
