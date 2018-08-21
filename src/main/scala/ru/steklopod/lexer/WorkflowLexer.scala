@@ -13,10 +13,10 @@ object WorkflowLexer extends RegexParsers {
   }
 
   /**
-    * [^ ]	- соответствует единичному символу из числа тех, которых нет в скобках.
-    * Например, [^abc] соответствует любому символу, кроме «a», «b» или «c».
+    * [^ ]	- соответствует единичному символу из числа тех, которых нет в скобках,
+    * например, [^abc] соответствует любому символу, кроме «a», «b» или «c».
     * [^a-z] соответствует любому символу, кроме символов нижнего регистра в латинском алфавите.
-    * */
+    */
   def literal: Parser[LITERAL] = positioned {
     """"[^"]*"""".r ^^ { str =>
       val content = str.substring(1, str.length - 1)
@@ -24,6 +24,9 @@ object WorkflowLexer extends RegexParsers {
     }
   }
 
+  /**
+    * \n[] - перенос строки, затем пробелы являются классом INDENTATION
+    */
   def indentation: Parser[INDENTATION] = positioned {
     "\n[ ]*".r ^^ { whitespace =>
       val nSpaces = whitespace.length - 1
