@@ -10,9 +10,6 @@
       override type Elem = WorkflowToken
 ```
 
-We also need to define a Reader[WorkflowToken] which will be used by the parser to read from a sequence of WorkflowTokens. 
-This is pretty straightforward:
-
 Нам также необходимо определить `Reader[WorkflowToken]`, который будет использоваться синтаксическим анализатором для чтения 
 из последовательности `WorkflowTokens`. Это довольно просто:
 
@@ -46,10 +43,6 @@ This is pretty straightforward:
     sealed trait Condition
     case class Equals(factName: String, factValue: String) extends Condition
 ```
-
-Being a WorkflowToken parser, we inherit an implicit conversion from WorkflowToken to Parser[WorkflowToken]. 
-This is useful for parsing parameterless tokens, such as EXIT, CALLSERVICE, etc. 
-For IDENTIFIER and LITERAL we can pattern match on these tokens with the accept method.
 
 `WorkflowToken` наследуеТ неявное преобразование из `WorkflowToken` в `Parser[WorkflowToken]`. 
 Это полезно для анализа безпараметрических токенов, таких как `EXIT`, `CALLSERVICE` и т.д. 
