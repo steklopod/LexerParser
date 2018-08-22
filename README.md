@@ -1,6 +1,8 @@
-# Parser combinators
+# Parser combinators - лексический анализатор
 
-**Задача:** создать свой [dsl-язык](https://ru.wikipedia.org/wiki/Предметно-ориентированный_язык), состоящий из блоков с отступами, аналогично языкам, таким как Python.
+**Задача:** создать свой [dsl-язык](https://ru.wikipedia.org/wiki/Предметно-ориентированный_язык), 
+состоящий из блоков с отступами, аналогично языкам, таким как Python. В качестве лексического анализатора используется библиотека,
+которая ранее являлась частью языка Скала - `parser combinators`.
 
 Пример парсинга файла `to.parse` (придуманный dsl):
 
@@ -206,6 +208,85 @@ _Любой другой символ пробела можно игнориро
 
 ## Обработка отступа
 
+We apply a brief post-processing step to our parse result with the processIndentations method. 
+This is used to produce the artifical INDENT and DEDENT tokens from the INDENTATION tokens. 
+Each increase in indentation level will be pushed to a stack, producing an INDENT, 
+and decreases in indentation level will be popped from the indentation stack, producing DEDENTs.
+
+Мы применяем короткий шаг после обработки к нашему результату синтаксического анализа методом `processIndentations`. 
+Он используется для создания искусственных токенов `INDENT` и `DEDENT` из токенов `INDENTATION`. 
+Каждое увеличение уровня отступов будет перенесено в стек, создавая `INDENT`, 
+и уменьшение уровня отступов будет выведено из стека отступов, производя `DEDENT`.
+
+<!-- code -->
+```scala
+    private def processIndentations(tokens: List[WorkflowToken],
+                                    indents: List[Int] = List(0)): List[WorkflowToken] = {
+      tokens.headOption match {
+    
+        // если есть увеличение (increase) уровня отступов, мы добавляем этот новый уровень в стек и создаем INDENT
+        case Some(INDENTATION(spaces)) if spaces > indents.head =>
+          INDENT :: processIndentations(tokens.tail, spaces :: indents)
+    
+      // если снижение (decrease), мы выходим из стека, пока не достигнем нового уровня и
+      // мы производим DEDENT для каждого взятия из стека (`pop`-операции)
+        case Some(INDENTATION(spaces)) if spaces < indents.head =>
+          val (dropped, kept) = indents.partition(_ > spaces)
+          (dropped map (_ => DEDENT)) ::: processIndentations(tokens.tail, kept)
+    
+      // если уровень отступов остается неизменным, токены не создаются
+        case Some(INDENTATION(spaces)) if spaces == indents.head =>
+          processIndentations(tokens.tail, indents)
+    
+      // другие токены игнорируются
+        case Some(token) =>
+          token :: processIndentations(tokens.tail, indents)
+    
+      // последний шаг - создать DEDENT для каждого оставшегося уровня отступов, таким образом
+      // «закрывая» оставшиеся открытые объекты
+        case None =>
+          indents.filter(_ > 0).map(_ => DEDENT)
+    
+      }
+    }
+```
+
+
+Все настроено! Этот парсер токенов будет генерировать `ParseResult[List[WorkflowToken]]`, потребляя `Reader[Char]`. 
+`RegexParsers` определяет свой собственный `Reader[Char]`, который внутренне вызывается методом `parse`, который он предоставляет. 
+Давайте затем определим метод `apply` для `WorkflowLexer`:
+
+<!-- code -->
+```scala
+    trait WorkflowCompilationError
+    case class WorkflowLexerError(msg: String) extends WorkflowCompilationError
+```
+
+<!-- code -->
+```scala
+    object WorkflowLexer extends RegexParsers {
+      ...
+    
+      def apply(code: String): Either[WorkflowLexerError, List[WorkflowToken]] = {
+        parse(tokens, code) match {
+          case NoSuccess(msg, next) => Left(WorkflowLexerError(msg))
+          case Success(result, next) => Right(result)
+        }
+      }
+    }
+```
+
+Попробуем наш лексический парсер из примера выше:
+
+<!-- code -->
+```sbtshell
+    scala> WorkflowLexer(code)
+    res0: Either[WorkflowLexerError,List[WorkflowToken]] = Right(List(READINPUT, IDENTIFIER(name), COMMA,
+    IDENTIFIER(country), SWITCH, COLON, INDENT, IDENTIFIER(country), EQUALS, LITERAL(PT), ARROW, INDENT, 
+    CALLSERVICE, LITERAL(A), EXIT, DEDENT, OTHERWISE, ARROW, INDENT, CALLSERVICE, LITERAL(B), SWITCH, COLON, 
+    INDENT, IDENTIFIER(name), EQUALS, LITERAL(unknown), ARROW, INDENT, EXIT, DEDENT, OTHERWISE, ARROW, 
+    INDENT, CALLSERVICE, LITERAL(C), EXIT, DEDENT, DEDENT, DEDENT, DEDENT))
+```
 
 
 [пример переведен мной отсюда](https://enear.github.io/2016/03/31/parser-combinators/)

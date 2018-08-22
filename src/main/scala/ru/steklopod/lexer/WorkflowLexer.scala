@@ -5,8 +5,7 @@ import scala.util.parsing.combinator.RegexParsers
 
 object WorkflowLexer extends RegexParsers {
   override def skipWhitespace: Boolean = true
-
-  override val whiteSpace = "[ \t\r\f]+".r // \t - табуляция; \r - возврат каретки; \f - конец (разрыв) страницы.
+  override val whiteSpace = "[ \t\r\f]+".r    /**  \t - табуляция; \r - возврат каретки; \f - конец (разрыв) страницы. */
 
   def apply(code: String): Either[WorkflowLexerError, List[WorkflowToken]] = {
     parse(tokens, code) match {
@@ -22,12 +21,10 @@ object WorkflowLexer extends RegexParsers {
     }
   }
 
-  private def processIndentations(tokens: List[WorkflowToken],
-                                  indents: List[Int] = List(0)): List[WorkflowToken] = {
+  private def processIndentations(tokens: List[WorkflowToken], indents: List[Int] = List(0)): List[WorkflowToken] = {
     tokens.headOption match {
 
-      // если есть увеличение (increase) уровня отступов, мы добавляем этот новый уровень в стек
-      // и создаем INDENT
+      // если есть увеличение (increase) уровня отступов, мы добавляем этот новый уровень в стек и создаем INDENT
       case Some(INDENTATION(spaces)) if spaces > indents.head =>
         INDENT() :: processIndentations(tokens.tail, spaces :: indents)
 
@@ -78,13 +75,13 @@ object WorkflowLexer extends RegexParsers {
     }
   }
 
-  def exit               = positioned { "exit"          ^^ (_ => EXIT()) }
-  def readInput     = positioned { "read input"    ^^ (_ => READINPUT()) }
-  def callService  = positioned { "call service"  ^^ (_ => CALLSERVICE()) }
-  def switch           = positioned { "switch"        ^^ (_ => SWITCH()) }
-  def otherwise     = positioned { "otherwise"     ^^ (_ => OTHERWISE()) }
-  def colon            = positioned { ":"             ^^ (_ => COLON()) }
-  def arrow           = positioned { "->"            ^^ (_ => ARROW()) }
-  def equals          = positioned { "=="            ^^ (_ => EQUALS()) }
-  def comma           = positioned { ","             ^^ (_ => COMMA()) }
+  def exit             = positioned {    "exit" ^^ (_ => EXIT())  }
+  def readInput   = positioned {    "read input" ^^ (_ => READINPUT())  }
+  def callService= positioned {    "call service" ^^ (_ => CALLSERVICE())  }
+  def switch         = positioned {    "switch" ^^ (_ => SWITCH())  }
+  def otherwise   = positioned {    "otherwise" ^^ (_ => OTHERWISE())  }
+  def colon          = positioned {    ":" ^^ (_ => COLON())  }
+  def arrow         = positioned {    "->" ^^ (_ => ARROW())  }
+  def equals        = positioned {    "==" ^^ (_ => EQUALS())  }
+  def comma         = positioned {    "," ^^ (_ => COMMA())  }
 }
