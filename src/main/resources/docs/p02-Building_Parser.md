@@ -1,7 +1,7 @@
-## Построение парсера
+## Построение синтаксического анализатора
 
 Теперь, когда мы позаботились о лексическом анализе, нам все еще не хватает этапа синтаксического анализа, т.е. 
-преобразования последовательности токенов в `абстрактное синтаксическое дерево (АСД)` [abstract syntax tree (AST)]. 
+преобразования последовательности токенов в [абстрактное синтаксическое дерево](https://ru.wikipedia.org/wiki/Абстрактное_синтаксическое_дерево). 
 В отличие от `RegexParsers`, которые генерируют синтаксические анализаторы строк, нам понадобится анализатор `WorkflowToken`.
 
 <!-- code -->
@@ -15,36 +15,36 @@
 
 <!-- code -->
 ```scala
-    class WorkflowTokenReader(tokens: Seq[WorkflowToken]) extends Reader[WorkflowToken] {
-      override def first: WorkflowToken = tokens.head
-      override def atEnd: Boolean = tokens.isEmpty
-      override def pos: Position = NoPosition
-      override def rest: Reader[WorkflowToken] = new WorkflowTokenReader(tokens.tail)
-    }
+  class WorkflowTokenReader(tokens: Seq[WorkflowToken]) extends Reader[WorkflowToken] {
+    override def first: WorkflowToken = tokens.head
+    override def atEnd: Boolean = tokens.isEmpty
+    override def pos: Position = tokens.headOption.map(_.pos).getOrElse(NoPosition)
+    override def rest: Reader[WorkflowToken] = new WorkflowTokenReader(tokens.tail)
+  }
 ```
 
 Процесс реализации парсера аналогичен процессу, используемому для создания лексического анализатора. 
 Мы определяем простые парсеры и композируем их в более сложные. 
-Только на этот раз наши парсеры будут возвращать `АСД` вместо токенов:
+Только на этот раз наши парсеры будут возвращать `абстрактное синтаксическое дерево (АСД)` вместо токенов:
 
 <!-- code -->
 ```scala
-    sealed trait WorkflowAST
-    case class AndThen(step1: WorkflowAST, step2: WorkflowAST) extends WorkflowAST
-    case class ReadInput(inputs: Seq[String]) extends WorkflowAST
-    case class CallService(serviceName: String) extends WorkflowAST
-    case class Choice(alternatives: Seq[ConditionThen]) extends WorkflowAST
-    case object Exit extends WorkflowAST
+    sealed trait WorkflowAST extends Positional
+      case class AndThen(step1: WorkflowAST, step2: WorkflowAST) extends WorkflowAST
+      case class ReadInput(inputs: Seq[String]) extends WorkflowAST
+      case class CallService(serviceName: String) extends WorkflowAST
+      case class Choice(alternatives: Seq[ConditionThen]) extends WorkflowAST
+      case object Exit extends WorkflowAST
     
-    sealed trait ConditionThen { def thenBlock: WorkflowAST }
-    case class IfThen(predicate: Condition, thenBlock: WorkflowAST) extends ConditionThen
-    case class OtherwiseThen(thenBlock: WorkflowAST) extends ConditionThen
+    sealed trait ConditionThen extends Positional { def thenBlock: WorkflowAST }
+      case class IfThen(predicate: Condition, thenBlock: WorkflowAST) extends ConditionThen
+      case class OtherwiseThen(thenBlock: WorkflowAST) extends ConditionThen
     
-    sealed trait Condition
-    case class Equals(factName: String, factValue: String) extends Condition
+    sealed trait Condition extends Positional
+      case class Equals(factName: String, factValue: String) extends Condition
 ```
 
-`WorkflowToken` наследуеТ неявное преобразование из `WorkflowToken` в `Parser[WorkflowToken]`. 
+`WorkflowToken` наследует неявное преобразование из `WorkflowToken` в `Parser[WorkflowToken]`. 
 Это полезно для анализа безпараметрических токенов, таких как `EXIT`, `CALLSERVICE` и т.д. 
 Для `IDENTIFIER` и `LITERAL` мы можем сопоставлять совпадение этих токенов с методом `accept`.
 
@@ -112,12 +112,8 @@
     }
 ```
 
-Как и в случае с lexer, мы также определяем метод `apply` у монады, который мы можем использовать позже, чтобы выразить конвейер операций:
-
-<!-- code -->
-```scala
-    case class WorkflowParserError(msg: String) extends WorkflowCompilationError
-```
+Как и в случае с `лексическим анализатором`, мы также определяем метод `apply` у монады, 
+который мы можем использовать позже, чтобы выразить конвейер операций:
 
 <!-- code -->
 ```scala
@@ -134,6 +130,10 @@
     }
 ```
 
+<!-- code -->
+```scala
+    case class WorkflowParserError(msg: String) extends WorkflowCompilationError
+```
 
 >НАВИГАЦИЯ:
 
