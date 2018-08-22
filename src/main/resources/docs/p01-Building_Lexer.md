@@ -7,7 +7,7 @@
 Нам также необходимо создавать искусственные токены, которые представляют собой увеличение и уменьшение 
 в идентификации: 
 `INDENT` и `DEDENT`, соответственно. 
-Пожалуйста, проигнорируйте их сейчас, так как мы перейдем к ним на более позднем этапе.
+Пожалуйста, проигнорируйте их сейчас, так как мы вернемся к ним чуть позже.
 
 <!-- code -->
 ```scala
@@ -34,7 +34,7 @@
 Он обеспечивает неявные преобразования из `String` и `Regex` в `Parser [String]`, 
 что позволяет использовать их в качестве отправной точки для составления все более сложных парсеров.
 
-Наш лексер расширяет [RegexParsers](https://github.com/scala/scala-parser-combinators/blob/1.1.x/docs/Getting_Started.md), который является подтипом [Parsers](https://github.com/scala/scala-parser-combinators/blob/1.1.x/docs/Getting_Started.md): 
+Наш лексический анализатор расширяет [RegexParsers](https://github.com/scala/scala-parser-combinators/blob/1.1.x/docs/Getting_Started.md), который является подтипом [Parsers](https://github.com/scala/scala-parser-combinators/blob/1.1.x/docs/Getting_Started.md): 
 
 <!-- code -->
 ```scala
@@ -178,15 +178,9 @@ _Любой другой символ пробела можно игнориро
 ```
 
 
-Все настроено! Этот парсер токенов будет генерировать `ParseResult[List[WorkflowToken]]`, потребляя `Reader[Char]`. 
+Лексический анализатор настроен! Этот парсер токенов будет генерировать `ParseResult[List[WorkflowToken]]`, потребляя `Reader[Char]`. 
 `RegexParsers` определяет свой собственный `Reader[Char]`, который внутренне вызывается методом `parse`, который он предоставляет. 
 Затем необходимо определить метод `apply` для `WorkflowLexer`:
-
-<!-- code -->
-```scala
-    trait WorkflowCompilationError
-    case class WorkflowLexerError(msg: String) extends WorkflowCompilationError
-```
 
 <!-- code -->
 ```scala
@@ -202,7 +196,13 @@ _Любой другой символ пробела можно игнориро
     }
 ```
 
-_Попробуем наш лексический парсер из примера выше_:
+<!-- code -->
+```scala
+    trait WorkflowCompilationError
+    case class WorkflowLexerError(msg: String) extends WorkflowCompilationError
+```
+
+_Попробуем наш лексический анализатор из примера выше_:
 
 <!-- code -->
 ```scala
@@ -213,6 +213,7 @@ _Попробуем наш лексический парсер из пример
     INDENT, IDENTIFIER(name), EQUALS, LITERAL(unknown), ARROW, INDENT, EXIT, DEDENT, OTHERWISE, ARROW, 
     INDENT, CALLSERVICE, LITERAL(C), EXIT, DEDENT, DEDENT, DEDENT, DEDENT))
 ```
+
 
 >НАВИГАЦИЯ:
 

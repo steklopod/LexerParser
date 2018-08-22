@@ -14,6 +14,11 @@ object WorkflowLexer extends RegexParsers {
     }
   }
 
+  /**
+    * | (или) - для распознавания любого из наших токенов-парсеров;
+    * rep1    - который распознает одно или несколько повторений своих аргументов;
+    * phrase  - которая пытается поглотить все входные данные, пока больше не останется.
+    **/
   def tokens: Parser[List[WorkflowToken]] = {
     phrase(rep1(exit | readInput | callService | switch | otherwise | colon | arrow
       | equals | comma | literal | identifier | indentation)) ^^ { rawTokens =>
@@ -21,6 +26,7 @@ object WorkflowLexer extends RegexParsers {
     }
   }
 
+  //используется для создания искусственных токенов INDENT и DEDENT из токенов INDENTATION
   private def processIndentations(tokens: List[WorkflowToken], indents: List[Int] = List(0)): List[WorkflowToken] = {
     tokens.headOption match {
 

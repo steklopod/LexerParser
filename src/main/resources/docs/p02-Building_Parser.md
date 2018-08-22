@@ -148,7 +148,6 @@ For IDENTIFIER and LITERAL we can pattern match on these tokens with the accept 
 
 * <= [Создание лексического анализатора](https://github.com/steklopod/LexerParser/blob/master/src/main/resources/docs/p01-Building_Lexer.md)
 
-* <== [Начало](https://github.com/steklopod/LexerParser/blob/master/README.md)
+<== [Начало](https://github.com/steklopod/LexerParser/blob/master/README.md)
 
 
-[пример переведен мной отсюда](https://enear.github.io/2016/03/31/parser-combinators/)
