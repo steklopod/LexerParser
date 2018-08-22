@@ -16,19 +16,18 @@
     case class IDENTIFIER(str: String) extends WorkflowToken
     case class LITERAL(str: String) extends WorkflowToken
     case class INDENTATION(spaces: Int) extends WorkflowToken
+    case class EXIT() extends WorkflowToken
+    case class READINPUT() extends WorkflowToken
+    case class CALLSERVICE() extends WorkflowToken
+    case class SWITCH() extends WorkflowToken
+    case class OTHERWISE() extends WorkflowToken
+    case class COLON() extends WorkflowToken
+    case class ARROW() extends WorkflowToken
+    case class EQUALS() extends WorkflowToken
+    case class COMMA() extends WorkflowToken
     
-    case object EXIT extends WorkflowToken
-    case object READINPUT extends WorkflowToken
-    case object CALLSERVICE extends WorkflowToken
-    case object SWITCH extends WorkflowToken
-    case object OTHERWISE extends WorkflowToken
-    case object COLON extends WorkflowToken
-    case object ARROW extends WorkflowToken
-    case object EQUALS extends WorkflowToken
-    case object COMMA extends WorkflowToken
-    
-    case object INDENT extends WorkflowToken
-    case object DEDENT extends WorkflowToken
+    case class INDENT() extends WorkflowToken
+    case class DEDENT() extends WorkflowToken
 ```
 
 `RegexParsers` создан для построения парсеров символов с использованием `регулярных выражений`. 
@@ -140,11 +139,6 @@ _Любой другой символ пробела можно игнориро
 
 ## Обработка отступа
 
-We apply a brief post-processing step to our parse result with the processIndentations method. 
-This is used to produce the artifical INDENT and DEDENT tokens from the INDENTATION tokens. 
-Each increase in indentation level will be pushed to a stack, producing an INDENT, 
-and decreases in indentation level will be popped from the indentation stack, producing DEDENTs.
-
 Мы применяем короткий шаг после обработки к нашему результату синтаксического анализа методом `processIndentations`. 
 Он используется для создания искусственных токенов `INDENT` и `DEDENT` из токенов `INDENTATION`. 
 Каждое увеличение уровня отступов будет перенесено в стек, создавая `INDENT`, 
@@ -186,7 +180,7 @@ and decreases in indentation level will be popped from the indentation stack, pr
 
 Все настроено! Этот парсер токенов будет генерировать `ParseResult[List[WorkflowToken]]`, потребляя `Reader[Char]`. 
 `RegexParsers` определяет свой собственный `Reader[Char]`, который внутренне вызывается методом `parse`, который он предоставляет. 
-Давайте затем определим метод `apply` для `WorkflowLexer`:
+Затем необходимо определить метод `apply` для `WorkflowLexer`:
 
 <!-- code -->
 ```scala
@@ -211,7 +205,7 @@ and decreases in indentation level will be popped from the indentation stack, pr
 _Попробуем наш лексический парсер из примера выше_:
 
 <!-- code -->
-```jshelllanguage
+```scala
     scala> WorkflowLexer(code)
     res0: Either[WorkflowLexerError,List[WorkflowToken]] = Right(List(READINPUT, IDENTIFIER(name), COMMA,
     IDENTIFIER(country), SWITCH, COLON, INDENT, IDENTIFIER(country), EQUALS, LITERAL(PT), ARROW, INDENT, 
