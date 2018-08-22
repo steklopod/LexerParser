@@ -219,8 +219,9 @@ _Попробуем наш лексический парсер из пример
     INDENT, IDENTIFIER(name), EQUALS, LITERAL(unknown), ARROW, INDENT, EXIT, DEDENT, OTHERWISE, ARROW, 
     INDENT, CALLSERVICE, LITERAL(C), EXIT, DEDENT, DEDENT, DEDENT, DEDENT))
 ```
-===========================================
 
-* => [Далее - Построение парсера](https://github.com/steklopod/LexerParser)
+>НАВИГАЦИЯ:
 
-* <== [Начало](https://github.com/steklopod/LexerParser)
+* => [Создание парсера](https://github.com/steklopod/LexerParser/blob/master/src/main/resources/docs/p02-Building_Parser.md)
+
+* <== [Начало](https://github.com/steklopod/LexerParser/blob/master/README.md)

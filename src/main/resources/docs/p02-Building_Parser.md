@@ -26,10 +26,6 @@ This is pretty straightforward:
     }
 ```
 
-Moving on with the parser implementation, the process is similar to the one used to build the lexer. 
-We define simple parsers and compose them into more complex ones. 
-Only this time around our parsers will be returning ASTs instead of tokens:
-
 Процесс реализации парсера аналогичен процессу, используемому для создания лексического анализатора. 
 Мы определяем простые парсеры и композируем их в более сложные. 
 Только на этот раз наши парсеры будут возвращать `АСД` вместо токенов:
@@ -51,15 +47,108 @@ Only this time around our parsers will be returning ASTs instead of tokens:
     case class Equals(factName: String, factValue: String) extends Condition
 ```
 
+Being a WorkflowToken parser, we inherit an implicit conversion from WorkflowToken to Parser[WorkflowToken]. 
+This is useful for parsing parameterless tokens, such as EXIT, CALLSERVICE, etc. 
+For IDENTIFIER and LITERAL we can pattern match on these tokens with the accept method.
+
+`WorkflowToken` наследуеТ неявное преобразование из `WorkflowToken` в `Parser[WorkflowToken]`. 
+Это полезно для анализа безпараметрических токенов, таких как `EXIT`, `CALLSERVICE` и т.д. 
+Для `IDENTIFIER` и `LITERAL` мы можем сопоставлять совпадение этих токенов с методом `accept`.
+
+<!-- code -->
+```scala
+    private def identifier: Parser[IDENTIFIER] = {
+      accept("identifier", { case id @ IDENTIFIER(name) => id })
+    }
+    
+    private def literal: Parser[LITERAL] = {
+      accept("string literal", { case lit @ LITERAL(name) => lit })
+    }
+```
+
+Правила грамматики могут быть реализованы подобным образом:
+
+<!-- code -->
+```scala
+    def condition: Parser[Equals] = {
+      (identifier ~ EQUALS ~ literal) ^^ { case id ~ eq ~ lit => Equals(id, lit) }
+    }
+```
+
+Это похоже на то, что мы делали ранее для создания токенов: мы сопоставили результат анализа 
+(состав результатов `identifier`, `EQUALS` и `literal`) на экземпляр `Equals`. 
+Обратите внимание на то, как совпадение шаблонов может быть использовано для экспрессивной распаковки результата композиции 
+парсера путем секвенирования (т.е. оператора `~`).
+
+Реализация остальных правил очень похожа на описанную выше грамматику:
+
+<!-- code -->
+```scala
+    def program: Parser[WorkflowAST] = {
+      phrase(block)
+    }
+    
+    def block: Parser[WorkflowAST] = {
+      rep1(statement) ^^ { case stmtList => stmtList reduceRight AndThen }
+    }
+    
+    def statement: Parser[WorkflowAST] = {
+      val exit = EXIT ^^ (_ => Exit)
+      val readInput = READINPUT ~ rep(identifier ~ COMMA) ~ identifier ^^ {
+        case read ~ inputs ~ IDENTIFIER(lastInput) => ReadInput(inputs.map(_._1.str) ++ List(lastInput))
+      }
+      val callService = CALLSERVICE ~ literal ^^ {
+        case call ~ LITERAL(serviceName) => CallService(serviceName)
+      }
+      val switch = SWITCH ~ COLON ~ INDENT ~ rep1(ifThen) ~ opt(otherwiseThen) ~ DEDENT ^^ {
+        case _ ~ _ ~ _ ~ ifs ~ otherwise ~ _ => Choice(ifs ++ otherwise)
+      }
+      exit | readInput | callService | switch
+    }
+    
+    def ifThen: Parser[IfThen] = {
+      (condition ~ ARROW ~ INDENT ~ block ~ DEDENT) ^^ {
+        case cond ~ _ ~ _ ~ block ~ _ => IfThen(cond, block)
+      }
+    }
+    
+    def otherwiseThen: Parser[OtherwiseThen] = {
+      (OTHERWISE ~ ARROW ~ INDENT ~ block ~ DEDENT) ^^ {
+        case _ ~ _ ~ _ ~ block ~ _ => OtherwiseThen(block)
+      }
+    }
+```
+
+Как и в случае с lexer, мы также определяем метод `apply` у монады, который мы можем использовать позже, чтобы выразить конвейер операций:
+
+<!-- code -->
+```scala
+    case class WorkflowParserError(msg: String) extends WorkflowCompilationError
+```
+
+<!-- code -->
+```scala
+    object WorkflowParser extends RegexParsers {
+      ...
+    
+      def apply(tokens: Seq[WorkflowToken]): Either[WorkflowParserError, WorkflowAST] = {
+        val reader = new WorkflowTokenReader(tokens)
+        program(reader) match {
+          case NoSuccess(msg, next) => Left(WorkflowParserError(msg))
+          case Success(result, next) => Right(result)
+        }
+      }
+    }
+```
 
 
-===========================================
+>НАВИГАЦИЯ:
 
-* => [Далее - построение цепочки из парсеров](https://github.com/steklopod/LexerParser)
+* => [Построение цепочки парсеров](https://github.com/steklopod/LexerParser/blob/master/src/main/resources/docs/p03-Pipelining.md)
 
-* <= [Назад - Создание лексического анализатора](https://github.com/steklopod/LexerParser)
+* <= [Создание лексического анализатора](https://github.com/steklopod/LexerParser/blob/master/src/main/resources/docs/p01-Building_Lexer.md)
 
-* <== [Начало](https://github.com/steklopod/LexerParser)
+* <== [Начало](https://github.com/steklopod/LexerParser/blob/master/README.md)
 
 
 [пример переведен мной отсюда](https://enear.github.io/2016/03/31/parser-combinators/)

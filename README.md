@@ -65,8 +65,11 @@ AndThen(
 ```sbtshell
     «org.scala-lang.modules» %% »scala-parser-combinators«% »1.1.1"
 ```
-===========================================
 
-* [Создание лексического анализатора](https://github.com/steklopod/LexerParser)
+>ДАЛЕЕ:
 
-* [Построение парсера](https://github.com/steklopod/LexerParser)
+* [Создание лексического анализатора](https://github.com/steklopod/LexerParser/blob/master/src/main/resources/docs/p01-Building_Lexer.md)
+
+* [Создание парсера](https://github.com/steklopod/LexerParser/blob/master/src/main/resources/docs/p02-Building_Parser.md)
+
+* [Построение цепочки парсеров](https://github.com/steklopod/LexerParser/blob/master/src/main/resources/docs/p03-Pipelining.md)
