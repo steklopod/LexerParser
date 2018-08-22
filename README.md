@@ -1,7 +1,7 @@
-# Лексический анализатор собственного dsl языка
+# Создание собственного компилятора для вымышленного dsl языка
 
-**Задача:** создать свой [dsl-язык](https://ru.wikipedia.org/wiki/Предметно-ориентированный_язык), 
-состоящий из блоков с отступами, аналогично языкам, таким как Python. В качестве лексического анализатора используется библиотека,
+**Задача:** создать свой компилятор для вымышленного [dsl-языка](https://ru.wikipedia.org/wiki/Предметно-ориентированный_язык), 
+состоящего из блоков с отступами, аналогично языкам, таким как Python. В качестве лексического анализатора используется библиотека,
 которая ранее являлась частью языка Скала - `parser combinators`.
 
 Пример парсинга файла `to.parse` (придуманный dsl):
@@ -67,10 +67,12 @@ AndThen(
     «org.scala-lang.modules» %% »scala-parser-combinators«% »1.1.1"
 ```
 
->ДАЛЕЕ:
+>НАВИГАЦИЯ:
 
 * [Создание лексического анализатора](https://github.com/steklopod/LexerParser/blob/master/src/main/resources/docs/p01-Building_Lexer.md)
 
 * [Создание синтаксического анализатора](https://github.com/steklopod/LexerParser/blob/master/src/main/resources/docs/p02-Building_Parser.md)
 
 * [Построение цепочки парсеров](https://github.com/steklopod/LexerParser/blob/master/src/main/resources/docs/p03-Pipelining.md)
+
+* [Обработка ошибок](https://github.com/steklopod/LexerParser/blob/master/src/main/resources/docs/p04-Error_handling.md)
